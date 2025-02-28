@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "preinstall": "npx npm@9.6.7 install --legacy-peer-deps",
     "build": "node src/scripts/build.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
