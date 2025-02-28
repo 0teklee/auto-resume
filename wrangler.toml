@@ -13,4 +13,4 @@ enabled = true
 
 [build]
 command = "npm run build"
-output_directory = "dist"
+pages_build_output_dir = "dist"
