@@ -1,0 +1,11 @@
+name = "auto-resume-worker"
+main = "./cloudflare/worker.ts"
+compatibility_date = "2025-02-27"
+
+[[r2_buckets]]
+binding = "bucket_binding"
+bucket_name = "auto-bucket"
+preview_bucket_name= "auto-bucket-preview"
+[observability.logs]
+enabled = true
+
