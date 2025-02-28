@@ -3,7 +3,7 @@ main = "./cloudflare/worker.ts"
 compatibility_date = "2025-02-27"
 
 [[r2_buckets]]
-binding = "bucket_binding"
+binding = "RESUME_STORAGE"
 bucket_name = "auto-bucket"
 preview_bucket_name= "auto-bucket-preview"
 
