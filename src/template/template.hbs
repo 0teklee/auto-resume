@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이택우 이력서 - TEKWOO LEE Resume</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" href="./template.css"/>
+</head>
+<body>
+<main>
+    {{#each document.children}}
+        {{recursiveChildren this.children}}
+    {{/each}}
+</main>
+</body>
+</html>
