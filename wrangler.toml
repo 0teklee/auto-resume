@@ -6,6 +6,11 @@ compatibility_date = "2025-02-27"
 binding = "bucket_binding"
 bucket_name = "auto-bucket"
 preview_bucket_name= "auto-bucket-preview"
+
 [observability.logs]
 enabled = true
 
+
+[build]
+command = "npm run build"
+output_directory = "dist"
