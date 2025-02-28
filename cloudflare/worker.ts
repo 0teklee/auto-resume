@@ -1,7 +1,7 @@
 export interface Env {
   //@ts-expect-error
   RESUME_STORAGE: R2Bucket;
-  DEPLOY_HOOK_URL: string;
+  DEPLOY_HOOK_URL: any;
 }
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -59,12 +59,9 @@ export default {
         httpMetadata: { contentType: "application/json" },
       });
 
-      // 5. Pages Deploy Hook 호출
-      if (!env.DEPLOY_HOOK_URL) {
-        throw new Error("⚠️[DEPLOY]:DEPLOY_HOOK_URL not found");
-      }
-
-      const deployResponse = await fetch(`${env.DEPLOY_HOOK_URL}`, {
+      let deploy_url = await env.DEPLOY_HOOK_URL;
+      console.info(`⚠️[DEPLOY]:DEPLOY_HOOK_URL ${deploy_url}`);
+      const deployResponse = await fetch(`${deploy_url}`, {
         method: "POST",
       });
 
