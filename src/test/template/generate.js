@@ -4,7 +4,7 @@ const fs = require("fs");
 const Handlebars = require("handlebars");
 const { if_eq, recursiveChildren } = require("../../template/helper");
 
-function generateTest(jsonFileName = "latest.json") {
+function generateTest(jsonFileName = "latest.json", remote) {
   console.info("[TEST:GEN] 1. Start Generating");
   const versionName = jsonFileName.split(".")[0];
   const templatePath = path.join(
@@ -14,6 +14,7 @@ function generateTest(jsonFileName = "latest.json") {
     "template",
     "template.hbs",
   );
+
   const jsonPath = path.join(__dirname, "..", "input-data", jsonFileName);
 
   console.info(`[TEST:GEN] 2. ver:${versionName} \n INPUT-JSON:${jsonPath}`);
