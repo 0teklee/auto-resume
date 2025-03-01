@@ -59,8 +59,9 @@ export default {
         httpMetadata: { contentType: "application/json" },
       });
 
+      // TODO 이게 안됨 : 배포훅  URL 작동 확인
       let deploy_url = await env.DEPLOY_HOOK_URL;
-      console.info(`⚠️[DEPLOY]:DEPLOY_HOOK_URL ${deploy_url}`);
+      console.log(`⚠️[DEPLOY]:DEPLOY_HOOK_URL ${deploy_url}`);
       const deployResponse = await fetch(`${deploy_url}`, {
         method: "POST",
       });
