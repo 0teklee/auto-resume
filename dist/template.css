@@ -19,6 +19,10 @@ main {
   }
 }
 
+a {
+  all: unset;
+}
+
 .row::after {
   display: none;
 }
@@ -180,6 +184,7 @@ strong {
 .shape {
   position: relative;
 }
+
 .shape::before {
   content: "";
   position: absolute;
