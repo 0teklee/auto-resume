@@ -25,8 +25,10 @@ function generateTest(jsonFileName = "latest.json") {
   Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
 
   const template = Handlebars.compile(templateSource);
+
   // Generate HTML
-  const output = template(figmaData);
+  let output = template(figmaData);
+  output = output.replace('href="./template.css', 'href="/dist/template.css');
 
   console.info(`✅[TEST:GEN] 3. OUTPUT:${output.slice(0, 50)}...`);
 
