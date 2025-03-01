@@ -30,12 +30,26 @@ const recursiveChildren = {
           .map((line) => line.trim())
           .filter(Boolean);
 
+        let href = Object.values(child?.styleOverrideTable);
+
         const liClass = safeClassName
           .split(" ")
           .filter((item) => item !== "list-items");
 
         const listItems = lines
-          .map((item) => `<li class="${liClass}">${item}</li>`)
+          .map((item, i) => {
+            const isLinkList = liClass.includes("link");
+            const isLinkFirstItem = isLinkList && i === 0;
+            if (isLinkFirstItem) {
+              return `<li class="${liClass}"><a class="link" href="${href}">{item}</a></li>`;
+            } else if (isLinkList && !isLinkFirstItem) {
+              const filtered = liClass
+                .filter((item) => item !== "link")
+                .join("");
+              return `<li class="${filtered}">{item}</li>`;
+            }
+            return `<li class="${liClass}">${item}</li>`;
+          })
           .join("");
         result += `<ul class="list-items">${listItems}</ul>`;
       }
@@ -57,7 +71,10 @@ const recursiveChildren = {
         else if (child.name.includes("bold")) tag = "strong";
         else if (child.name.includes("span")) tag = "span";
 
-        result += `<${tag} ${attr || ""} class="${child.name}">${applyTextStyles(child)}</${tag}>`;
+        const textStyleOverride =
+          child.name !== "link" ? applyTextStyles(child) : child.characters;
+
+        result += `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
       }
 
       // COL/ROW 레이아웃 프레임 노드
