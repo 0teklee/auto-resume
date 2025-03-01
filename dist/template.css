@@ -115,6 +115,7 @@ strong {
 
 .link {
   cursor: pointer;
+  text-decoration: none;
   text-decoration-color: hsl(var(--theme));
 }
 
@@ -125,7 +126,7 @@ strong {
 
 .link:hover {
   opacity: 80%;
-  text-decoration: 3px underline hsl(var(--theme));
+  text-decoration: 3px underline;
   -webkit-text-decoration-line: underline;
   -webkit-text-decoration-thickness: 3px;
   -webkit-text-decoration-color: hsl(var(--theme));
