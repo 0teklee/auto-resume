@@ -30,7 +30,7 @@ const recursiveChildren = {
           .map((line) => line.trim())
           .filter(Boolean);
 
-        let href = Object.values(child?.styleOverrideTable);
+        let href = Object.values(child?.styleOverrideTable)[0]?.hyperlink?.url;
 
         const liClass = safeClassName
           .split(" ")
@@ -40,13 +40,13 @@ const recursiveChildren = {
           .map((item, i) => {
             const isLinkList = liClass.includes("link");
             const isLinkFirstItem = isLinkList && i === 0;
-            if (isLinkFirstItem) {
-              return `<li class="${liClass}"><a class="link" href="${href}">{item}</a></li>`;
+            if (isLinkFirstItem && href) {
+              return `<li class=""><a class="link" href="${href}">${item}</a></li>`;
             } else if (isLinkList && !isLinkFirstItem) {
               const filtered = liClass
                 .filter((item) => item !== "link")
                 .join("");
-              return `<li class="${filtered}">{item}</li>`;
+              return `<li class="${filtered}">${item}</li>`;
             }
             return `<li class="${liClass}">${item}</li>`;
           })
