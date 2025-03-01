@@ -11,8 +11,8 @@ export default {
         status: 204,
         headers: {
           //TODO - Figma 플러그인 Desktop App의 Webview ORIGIN = null로 인한 CORS 에러, 임시로 * 추가
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Origin": "null",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type",
         },
       });
