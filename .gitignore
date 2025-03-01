@@ -4,5 +4,7 @@ node_modules
 .env.local
 .wrangler
 
-src/*/test-*
-src/test
+test
+dist/index.html
+src/test/input-data/*
+src/test/*/result/*
