@@ -25,13 +25,14 @@ figma.ui.onmessage = async (msg) => {
       figma.notify("✅ [ENV]: loaded");
 
       // Figma JSON 데이터 불러오기
-      const jsonData = await fetchFigmaJSON(FIGMA_FILE_KEY, FIGMA_API_KEY);
+      let jsonData = await fetchFigmaJSON(FIGMA_FILE_KEY, FIGMA_API_KEY);
       if (!jsonData) {
         figma.notify("❌[FIGMA-API]:Failed to fetch Figma data");
         return; // 오류 발생 시 종료
       }
 
-      console.log("[FIGMA-API]: Preparing", JSON.stringify(jsonData));
+      jsonData.document = formatFigmaJson(jsonData.document, ALLOWED_KEYS);
+      console.log("[FIGMA-API]: Preparing", jsonData);
 
       // Worker로 Figma JSON 전달
       const response = await fetch(WORKER_URL, {
@@ -87,4 +88,55 @@ async function fetchFigmaJSON(fileKey, apiKey) {
     figma.notify("❌ Figma API Error: " + error.message);
     return null;
   }
+}
+
+// Figma API에서 유지할 필드 목록
+const ALLOWED_KEYS = [
+  "id",
+  "name",
+  "type",
+  "characters",
+  "document",
+  "style",
+  "children",
+  "characterStyleOverrides",
+  "styleOverrideTable",
+  // "strokes",
+  // "strokeWeight",
+  // "strokeAlign",
+  // "constraints",
+  // "layoutAlign",
+  // "layoutGrow",
+  "layoutMode", // col, row 방향
+  // "layoutSizingHorizontal",
+  // "layoutSizingVertical",
+  // "lineTypes",
+  // "lineIndentations",
+];
+
+const FULL_OBJECT_KEYS = [
+  // "constraints",
+  "style",
+  "characterStyleOverrides",
+  "styleOverrideTable",
+];
+
+function formatFigmaJson(json) {
+  function filterNode(node) {
+    if (Array.isArray(node)) {
+      return node.map(filterNode);
+    } else if (typeof node === "object" && node !== null) {
+      return Object.fromEntries(
+        Object.entries(node)
+          .filter(([key]) => ALLOWED_KEYS.includes(key))
+          .map(([key, value]) => [
+            key,
+            FULL_OBJECT_KEYS.includes(key) ? value : filterNode(value),
+          ]),
+      );
+    }
+    return node;
+  }
+
+  return filterNode(json);
 }
