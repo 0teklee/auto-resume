@@ -15,32 +15,43 @@ const recursiveChildren = {
 
       // list-items를 ul > li 태그로 전환
       if (safeClassName.includes("list-items")) {
-        const lines = child.characters
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean);
-
-        let href = Object.values(child?.styleOverrideTable)[0]?.hyperlink?.url;
-
+        const characters = child.characters;
+        // Figma 글자 스타일 override 맵핑 인덱스 사용
+        const styles = child?.characterStyleOverrides || [];
+        const overrideTable = child?.styleOverrideTable || {};
         const liClass = safeClassName
           .split(" ")
           .filter((item) => item !== "list-items");
 
+        // 줄바꿈을 기준으로 characters와 styles를 동일하게 분할
+        let startIndex = 0;
+        const lines = characters.split("\n").map((line) => {
+          const lineLength = line.length;
+          const styleSlice = styles.slice(startIndex, startIndex + lineLength);
+          startIndex += lineLength + 1; // +1은 \n 문자 포함
+
+          return { text: line, styleOverrides: styleSlice };
+        });
+
+        let href = Object.values(overrideTable).find(
+          (style) => style?.hyperlink,
+        )?.hyperlink?.url;
+
         const listItems = lines
-          .map((item, i) => {
-            const isLinkList = liClass.includes("link");
-            const isLinkFirstItem = isLinkList && i === 0;
-            if (isLinkFirstItem && href) {
-              return `<li class=""><a class="link" href="${href}">${item}</a></li>`;
-            } else if (isLinkList && !isLinkFirstItem) {
-              const filtered = liClass
-                .filter((item) => item !== "link")
-                .join("");
-              return `<li class="${filtered}">${item}</li>`;
+          .map(({ text, styleOverrides }, i) => {
+            const styledText = applyTextStyles({
+              characters: text,
+              characterStyleOverrides: styleOverrides,
+              styleOverrideTable: overrideTable,
+            });
+
+            if (href && i === 0) {
+              return `<li class=""><a class="link" target="_blank" href="${href}">${styledText}</a></li>`;
             }
-            return `<li class="${liClass}">${item}</li>`;
+            return `<li class="${liClass.join(" ")}">${styledText}</li>`;
           })
           .join("");
+
         result += `<ul class="list-items">${listItems}</ul>`;
       }
 
@@ -49,11 +60,12 @@ const recursiveChildren = {
         let tag = "p";
         let attr = "";
         if (child.name.includes("h1")) tag = "h1";
-        else if (child.name.includes("link")) {
+        else if (
+          child.name.includes("link") &&
+          !!child?.style?.hyperlink?.url // 오버라이드 미포함
+        ) {
           tag = "a";
-          attr = child?.style?.hyperlink?.url
-            ? `href="${child.style.hyperlink.url}"`
-            : "";
+          attr = `href="${child.style.hyperlink.url}" target="_blank"`;
         } else if (child.name.includes("h2")) tag = "h2";
         else if (child.name.includes("h3")) tag = "h3";
         else if (child.name.includes("h4")) tag = "h4";

@@ -8,10 +8,12 @@ function getMaxDepth(node, depth = 1) {
 function applyTextStyles(node) {
   let text = node.characters;
   if (!text) return "";
-  let styles = node.characterStyleOverrides || [];
+  let styles = (node.characterStyleOverrides || []).slice(0, text.length);
   let overrideTable = node.styleOverrideTable || {};
   let styledText = "";
   let openTags = [];
+
+  let lastStyleKey = null; // 이전 스타일 키를 저장
 
   for (let i = 0; i < text.length; i++) {
     let styleKey = styles[i] || 0;
@@ -29,18 +31,24 @@ function applyTextStyles(node) {
       tagEnd = "</u>" + tagEnd;
     }
 
-    if (openTags.length > 0 && tagStart !== openTags[openTags.length - 1]) {
-      styledText += openTags.pop();
+    // 스타일이 변경되었을 때만 태그를 닫고 새로 여는 방식
+    if (lastStyleKey !== null && lastStyleKey !== styleKey) {
+      while (openTags.length) {
+        styledText += openTags.pop();
+      }
     }
 
-    if (tagStart) {
+    // 새로운 스타일이면 태그 열기
+    if (tagStart && lastStyleKey !== styleKey) {
       styledText += tagStart;
       openTags.push(tagEnd);
     }
 
     styledText += text[i];
+    lastStyleKey = styleKey;
   }
 
+  // 마지막으로 남아 있는 태그 닫기
   while (openTags.length) {
     styledText += openTags.pop();
   }
