@@ -1,0 +1,8 @@
+{
+  "name": "Auto Resume Update",
+  "id": "auto-resume-plugin",
+  "api": "1.0.0",
+  "editorType": ["figma"],
+  "ui": "ui.html",
+  "main": "plugin.js"
+}

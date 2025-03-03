@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 3px}
+    </style>
+</head>
+<body>
+<h3>Auto Resume Figma Plugin</h3>
+<button id="updateBtn">Start</button>
+<p id="status" style="margin-top: 10px;"></p>
+<script>
+    const updateBtn = document.getElementById("updateBtn");
+    const statusText = document.getElementById("status");
+
+
+    // Plugin.js의 클릭 이벤트 등록. figma.ui.onmessage로 클릭 이벤트를 받아 스크립트 실행
+    updateBtn.addEventListener("click", async () => {
+        try{
+            updateBtn.disabled = true;
+            statusText.textContent = "진행 중..."
+            // parent는 plugin.js의 figma.ui로 메시지 이벤트를 보낸다.
+            await parent.postMessage({ pluginMessage: { type: "send-update" } }, "*");
+        }catch (e) {
+            statusText.textContent = `[FAILED]:${e}`
+        }
+    });
+    // send-update로 plugin.js 요청이 모두 끝나면,
+    // 성공 / 실패를 statusText로 보여준다
+    window.onmessage = (event) => {
+        if (event.data.pluginMessage.status === "SUCCESS"
+        ) {
+            statusText.textContent = "✅ Completed";
+        }
+        else if(event.data.pluginMessage.status.includes("FAILED")){
+            statusText.textContent = `❌${event.data.pluginMessage.status}`;
+        }
+    };
+</script>
+</body>
+</html>
