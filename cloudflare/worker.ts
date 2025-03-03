@@ -1,24 +1,33 @@
 export interface Env {
   //@ts-expect-error
   RESUME_STORAGE: R2Bucket;
-  DEPLOY_HOOK_URL: any;
+  DEPLOY_HOOK_URL: string;
+  WORKER_API_KEY: string;
 }
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // Authorization 헤더 설정 - .env.local, figma client storage, cloudflare secret에 저장됨
+    const authHeader = request.headers.get("Authorization");
+    const isAuthorized = authHeader === `Bearer ${env.WORKER_API_KEY}`;
+
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "null",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Credentials": "true",
+    };
+
     // Preflight 처리 (CORS)
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
         headers: {
-          //TODO - Figma 플러그인 Desktop App의 Webview ORIGIN = null로 인한 CORS 에러, 임시로 * 추가
-          "Access-Control-Allow-Origin": "null",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
+          ...corsHeaders,
         },
       });
     }
 
-    if (request.method !== "POST") {
+    if (request.method !== "POST" || !isAuthorized) {
       return new Response("❌[WORKER]:Method Not Allowed", { status: 405 });
     }
 
@@ -75,10 +84,7 @@ export default {
         }),
         {
           headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            ...corsHeaders,
           },
         },
       );

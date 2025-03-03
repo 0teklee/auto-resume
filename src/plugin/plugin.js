@@ -8,7 +8,10 @@ figma.ui.onmessage = async (msg) => {
     * await figma.clientStorage.setAsync("ENV", "your-env");
     * */
     try {
-      // 클라이언트 스토리지에서 환경변수 불러오기
+      // 피그마 클라이언트 스토리지에서 환경변수 불러오기
+      // Promise.all 사용 시 RuntimeError: memory access out of bounds
+      const PLUGIN_API_KEY =
+        await figma.clientStorage.getAsync("PLUGIN_API_KEY");
       const WORKER_URL = await figma.clientStorage.getAsync("WORKER_URL");
       const FIGMA_FILE_KEY =
         await figma.clientStorage.getAsync("FIGMA_FILE_KEY");
@@ -33,8 +36,10 @@ figma.ui.onmessage = async (msg) => {
       // Worker로 Figma JSON 전달
       const response = await fetch(WORKER_URL, {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${PLUGIN_API_KEY}`,
         },
         body: JSON.stringify(jsonData),
       });
