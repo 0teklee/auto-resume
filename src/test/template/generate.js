@@ -33,7 +33,7 @@ function generateTest(jsonFileName = "latest.json") {
 
   // 테스트 html 파일 저장
   // 이름 컨밴션: test-YYYY-MM-DD-{version}.html
-  const testFileName = `test-${new Date().toISOString().split("T")[0]}-${versionName}.html`;
+  const testFileName = `test-${new Date().toISOString()}-${versionName}.html`;
 
   const outputPath = path.join(__dirname, "result", testFileName);
   fs.writeFileSync(outputPath, output, "utf-8");
