@@ -8,3 +8,6 @@ test
 dist/index.html
 src/test/input-data/*
 src/test/*/result/*
+
+# Wrangler local vars
+.dev.vars
