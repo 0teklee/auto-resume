@@ -21,7 +21,7 @@ const recursiveChildren = {
         const overrideTable = child?.styleOverrideTable || {};
         const liClass = safeClassName
           .split(" ")
-          .filter((item) => item !== "list-items");
+          .filter((item) => item !== "list-items" && item !== "link");
 
         // 줄바꿈을 기준으로 characters와 styles를 동일하게 분할
         let startIndex = 0;
