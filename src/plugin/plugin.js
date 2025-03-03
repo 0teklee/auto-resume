@@ -36,7 +36,7 @@ figma.ui.onmessage = async (msg) => {
       // Worker로 Figma JSON 전달
       const response = await fetch(WORKER_URL, {
         method: "POST",
-        credentials: "same-origin",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${PLUGIN_API_KEY}`,
