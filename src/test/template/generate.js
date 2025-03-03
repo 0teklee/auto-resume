@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const Handlebars = require("handlebars");
-const { if_eq, recursiveChildren } = require("../../template/helper");
+const { recursiveChildren } = require("../../template/helper");
 
 function generateTest(jsonFileName = "latest.json") {
   console.info("[TEST:GEN] 1. Start Generating");
@@ -21,7 +21,6 @@ function generateTest(jsonFileName = "latest.json") {
   const templateSource = fs.readFileSync(templatePath, "utf-8");
   const figmaData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 
-  Handlebars.registerHelper(if_eq.key, if_eq.function);
   Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
 
   const template = Handlebars.compile(templateSource);

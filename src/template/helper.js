@@ -1,16 +1,6 @@
 const { applyTextStyles, getMaxDepth } = require("./utils.js");
 const Handlebars = require("handlebars");
 
-const if_eq = {
-  key: "if_eq",
-  function(a, b, opts) {
-    if (a === b) {
-      return opts.fn(this);
-    }
-    return opts.inverse(this);
-  },
-};
-
 const recursiveChildren = {
   key: "recursiveChildren",
   function(children, opts, parentMaxDepth = null) {
@@ -115,4 +105,4 @@ const recursiveChildren = {
   },
 };
 
-module.exports = { if_eq, recursiveChildren };
+module.exports = { recursiveChildren };

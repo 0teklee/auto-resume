@@ -3,7 +3,7 @@
     목적: 최신 버전의 JSON을 R2로부터 받은 뒤, dist/index.html 생성
     실행 시점: Deploy Hook 요청 받을 시 즉시 실행.
 */
-const { if_eq, recursiveChildren } = require("../template/helper.js");
+const { recursiveChildren } = require("../template/helper.js");
 
 const fs = require("fs");
 const path = require("path");
@@ -28,7 +28,6 @@ const Handlebars = require("handlebars");
     const templatePath = path.join(__dirname, "..", "template", "template.hbs");
     // template.hbs 로드
     const templateSource = fs.readFileSync(templatePath, "utf-8");
-    Handlebars.registerHelper(if_eq.key, if_eq.function);
     Handlebars.registerHelper(
       recursiveChildren.key,
       recursiveChildren.function,
