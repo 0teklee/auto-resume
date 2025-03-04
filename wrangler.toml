@@ -1,5 +1,5 @@
 name = "auto-resume-worker"
-main = "./cloudflare/worker.ts"
+main = "./worker.ts"
 compatibility_date = "2025-02-27"
 
 [[r2_buckets]]
@@ -7,8 +7,3 @@ binding = "RESUME_STORAGE"
 bucket_name = "auto-bucket"
 preview_bucket_name= "auto-bucket-preview"
 
-[observability.logs]
-enabled = true
-
-[build]
-pages_build_output_dir = "./dist"
