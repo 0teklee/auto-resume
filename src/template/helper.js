@@ -3,11 +3,33 @@ const Handlebars = require("handlebars");
 
 const recursiveChildren = {
   key: "recursiveChildren",
-  function(children, opts, parentMaxDepth = null) {
+  function(children, opts, parentMaxDepth = null, isRoot = true) {
     let result = "";
+    // opts.data.index === 0 && !result.includes("<main");
+
+    if (isRoot) {
+      console.log(
+        `CUR Index: ${opts.data.index}  isRoot :`,
+        isRoot,
+        "\n",
+        "OPTS.data >",
+        opts.data,
+      );
+
+      let { layoutMode, itemSpacing = 4, name: layerName } = opts.data.root;
+      let classNames = layerName.replace(/\b(col-\d+|row-\d+)\b/g, "").trim();
+      const groupType = layoutMode === "VERTICAL" ? "col" : "row";
+      let gapMatch = layerName.match(/(\d+)/);
+
+      let styleAttrs = itemSpacing ?? 4;
+      styleAttrs = gapMatch ? gapMatch[0] : styleAttrs;
+
+      result += `<${isRoot ? "main" : "div"} class="${groupType}${classNames ? " " + classNames : ""}" style="gap:${styleAttrs}px">`;
+    }
+    let childResult = "";
 
     children.forEach((child) => {
-      // 그래프 높이 계산
+      // 그래프 높이 계산 - 자식 노드마다 업데이트
       const maxDepth = parentMaxDepth ?? getMaxDepth({ children });
 
       // 클래스 = Figma 레이어 이름
@@ -52,7 +74,7 @@ const recursiveChildren = {
           })
           .join("");
 
-        result += `<ul class="list-items">${listItems}</ul>`;
+        childResult += `<ul class="list-items">${listItems}</ul>`;
       }
 
       // 텍스트 노드들 태그
@@ -76,7 +98,7 @@ const recursiveChildren = {
         const textStyleOverride =
           child.name !== "link" ? applyTextStyles(child) : child.characters;
 
-        result += `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
+        childResult += `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
       }
 
       // COL/ROW 레이아웃 프레임 노드
@@ -94,24 +116,29 @@ const recursiveChildren = {
         let styleAttrs = itemSpacing ?? 4;
         styleAttrs = gapMatch ? gapMatch[0] : styleAttrs;
 
-        result += `<div class="${groupType}${classNames ? " " + classNames : ""}" style="gap:${styleAttrs}px">`;
+        childResult += `<div class="${groupType}${classNames ? " " + classNames : ""}" style="gap:${styleAttrs}px">`;
 
         if (child.children && child.children.length > 0) {
-          result += Handlebars.helpers.recursiveChildren(
+          childResult += Handlebars.helpers.recursiveChildren(
             child.children,
             opts,
             maxDepth,
+            false,
           );
         }
-        result += `</div>`;
+        childResult += `</div>`;
       } else if (
         child.type === "RECTANGLE" ||
         child.type === "ELLIPSE" ||
         child.name === "br"
       ) {
-        result += `<div class="${safeClassName}"></div>`;
+        childResult += `<div class="${safeClassName}"></div>`;
       }
     });
+
+    if (isRoot && !result.includes("</main")) {
+      result += `</main>`;
+    }
 
     return new Handlebars.SafeString(result);
   },
