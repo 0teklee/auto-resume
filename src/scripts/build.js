@@ -140,6 +140,10 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
       ${outputDir}
       `,
     );
+
+    const headersFile = path.join(distDir, "_headers");
+    fs.writeFileSync(headersFile, "/*\n  Cache-Control: no-store\n", "utf-8");
+    console.info(`✅[BUILD]: _headers 파일 생성 완료`);
   } catch (err) {
     console.error("❌[BUILD]: Build script error:", err);
     process.exit(1); // Fail the build if an error occurs
