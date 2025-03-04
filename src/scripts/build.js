@@ -108,7 +108,8 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     const outputDir = getDirectoryTree(distDir);
     console.info(
       `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length} \n
-      paths:\n
+      save to: ${distDir} \n
+      paths:
       ${outputDir}
       `,
     );
