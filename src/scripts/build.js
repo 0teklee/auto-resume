@@ -99,8 +99,12 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
       `✅[BUILD]: _redirects 파일 생성. \n sub-paths: \n ${redirectsFile}`,
     );
 
+    const outputDir = fs.readdirSync(distDir);
     console.info(
-      `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length}`,
+      `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length} \n
+      path:\n
+      ${outputDir}
+      `,
     );
   } catch (err) {
     console.error("❌[BUILD]: Build script error:", err);
