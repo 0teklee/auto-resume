@@ -9,6 +9,8 @@ const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
 
+Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
+
 // R2로 JSON 요청 - 즉시 실행 함수
 (async () => {
   try {
@@ -22,34 +24,64 @@ const Handlebars = require("handlebars");
     } else {
       console.info(["[BUILD]:get latest json"]);
     }
-    const resumeData = await response.json();
+    const figmaData = await response.json();
 
     // template.hbs 경로
     const templatePath = path.join(__dirname, "..", "template", "template.hbs");
     // template.hbs 로드
     const templateSource = fs.readFileSync(templatePath, "utf-8");
-    Handlebars.registerHelper(
-      recursiveChildren.key,
-      recursiveChildren.function,
-    );
 
     // template 컴파일
     const template = Handlebars.compile(templateSource);
 
-    // Figma JSON을 template.hbs에 주입
-    const outputHtml = template(resumeData);
-
     // output 경로 확인
-    const distDir = path.join(__dirname, "..", "..", "dist");
+    const distDir = path.join(__dirname, "..", "dist");
     if (!fs.existsSync(distDir)) {
-      fs.mkdirSync(distDir);
+      fs.mkdirSync(distDir, { recursive: true });
     }
 
-    // 생성된 HTML을 경로 dist/index.html에 저장
-    const outputPath = path.join(distDir, "index.html");
-    fs.writeFileSync(outputPath, outputHtml);
+    /* root = Document 객체 > 피그마 파일 최상단
+     *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
+     *  pagesNode = canvas의 children. 페이지별로 문서 단위로 나뉘어짐
+     * */
+    const rootNodeName = "truth-resume";
+    const pagesNode = figmaData?.document?.children[0]?.children;
 
-    console.log("✅[BUILD]: HTML 생성 완료 dist/index.html");
+    const isRootNode =
+      figmaData.document &&
+      figmaData.document.children?.length > 0 &&
+      figmaData.document.children[0]?.name === rootNodeName &&
+      !!pagesNode;
+
+    // NOTE: document의 children을 가져와 page 별로 각각 개별 HTML 생성
+    if (isRootNode) {
+      const totalPageLength = pagesNode.length;
+
+      pagesNode.forEach((page, i) => {
+        const pageName = page.name
+          .replace(/\b(col-\d+|row-\d+)\b/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .toLowerCase();
+
+        // 페이지 HTML 생성
+        let outputHtml = template(page);
+        const outputSubPath = i === 0 ? [distDir] : [distDir, pageName];
+        const outputDir = path.join(...outputSubPath);
+        const outputPath = path.join(outputDir, "index.html");
+
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        fs.writeFileSync(outputPath, outputHtml, "utf-8");
+        console.info(
+          `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
+        );
+      });
+    }
+
+    console.info(`✅[TEST:GEN]: DONE output save all pages`);
   } catch (err) {
     console.error("❌[BUILD]: Build script error:", err);
     process.exit(1); // Fail the build if an error occurs
