@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node src/scripts/build.js && ls -lahR dist && stat dist/* dist/cv/* && cat .pages_output_dir",
+    "build": "node src/scripts/build.js && ls -lahR dist && stat dist/* && cat .pages_output_dir && echo 'dist' > .pages_output_dir && cat .pages_output_dir && dist/cv/*",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:gen": "node src/test/template/test:gen.js"
   },
