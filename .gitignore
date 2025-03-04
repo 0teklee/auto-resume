@@ -14,3 +14,4 @@ src/test/*/result/*
 
 # Wrangler 로컬 configure
 /wrangler.pages.toml
+/wrangler.toml
