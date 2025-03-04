@@ -40,6 +40,11 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     if (!fs.existsSync(distDir)) {
       fs.mkdirSync(distDir, { recursive: true });
     }
+
+    // _redirects 무시하지 않도록 설정
+    const nojekyllFile = path.join(distDir, ".nojekyll");
+    fs.writeFileSync(nojekyllFile, "", "utf-8");
+
     // _redirects 파일 경로 설정
     const redirectsFile = path.join(distDir, "_redirects");
 
@@ -104,6 +109,28 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     console.info(
       `✅[BUILD]: _redirects 파일 생성. \n sub-paths: \n ${redirectsFile}`,
     );
+
+    // Cloudflare Pages가 변경 감지 : dist/ 내 모든 파일 수정 시간 업데이트
+
+    const touch = (filePath) => {
+      const time = new Date();
+      fs.utimesSync(filePath, time, time);
+    };
+
+    const updateFileTimestamps = (dir) => {
+      const files = fs.readdirSync(dir);
+      files.forEach((file) => {
+        const fullPath = path.join(dir, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+          updateFileTimestamps(fullPath);
+        } else {
+          touch(fullPath);
+        }
+      });
+    };
+
+    updateFileTimestamps(distDir);
+    console.info(`✅[BUILD]: dist/ 파일 수정 시간 업데이트 완료`);
 
     const outputDir = getDirectoryTree(distDir);
     console.info(
