@@ -43,6 +43,11 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     // _redirects 파일 경로 설정
     const redirectsFile = path.join(distDir, "_redirects");
 
+    if (!fs.existsSync(redirectsFile)) {
+      console.info("✅[BUILD]: Creating _redirects file...");
+      fs.writeFileSync(redirectsFile, "", "utf-8");
+    }
+
     // _redirects 파일을 업데이트할 배열
     const redirectsList = [];
 

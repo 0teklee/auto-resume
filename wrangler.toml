@@ -10,3 +10,5 @@ preview_bucket_name= "auto-bucket-preview"
 [observability.logs]
 enabled = true
 
+[build]
+pages_build_output_dir = "./dist"
