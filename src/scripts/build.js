@@ -8,6 +8,7 @@ const { recursiveChildren } = require("../template/helper.js");
 const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
+const { getDirectoryTree } = require("./utils.js");
 
 Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
 
@@ -99,10 +100,10 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
       `✅[BUILD]: _redirects 파일 생성. \n sub-paths: \n ${redirectsFile}`,
     );
 
-    const outputDir = fs.readdirSync(distDir);
+    const outputDir = getDirectoryTree(distDir);
     console.info(
       `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length} \n
-      path:\n
+      paths:\n
       ${outputDir}
       `,
     );
