@@ -5,7 +5,6 @@ node_modules
 .wrangler
 
 test
-dist/index.html
 src/test/input-data/*
 src/test/*/result/*
 
