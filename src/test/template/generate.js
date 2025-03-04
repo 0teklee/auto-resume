@@ -16,7 +16,7 @@ function generateTest(jsonFileName = "latest.json") {
   );
   const jsonPath = path.join(__dirname, "..", "input-data", jsonFileName);
 
-  console.info(`[TEST:GEN] 2. ver:${versionName} \n INPUT-JSON:${jsonPath}`);
+  console.info(`[TEST:GEN] 2. ver:${versionName}`);
 
   const templateSource = fs.readFileSync(templatePath, "utf-8");
   const figmaData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
@@ -25,20 +25,56 @@ function generateTest(jsonFileName = "latest.json") {
 
   const template = Handlebars.compile(templateSource);
 
-  // Generate HTML
-  let output = template(figmaData);
-  output = output.replace('href="./template.css', 'href="/dist/template.css');
+  // output 경로 확인
+  const distDir = path.join(__dirname, "result", `dist-${versionName}`);
+  if (!fs.existsSync(distDir)) {
+    fs.mkdirSync(distDir, { recursive: true });
+  }
+  /* root = Document 객체 > 피그마 파일 최상단
+   *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
+   *  pagesNode = canvas의 children. 페이지별로 문서 단위로 나뉘어짐
+   * */
+  const rootNodeName = "truth-resume";
+  const pagesNode = figmaData?.document?.children[0]?.children;
 
-  console.info(`✅[TEST:GEN] 3. OUTPUT:${output.slice(0, 50)}...`);
+  const isRootNode =
+    figmaData.document &&
+    figmaData.document.children?.length > 0 &&
+    figmaData.document.children[0]?.name === rootNodeName &&
+    !!pagesNode;
 
-  // 테스트 html 파일 저장
-  // 이름 컨밴션: test-YYYY-MM-DD-{version}.html
-  const testFileName = `test-${new Date().toISOString()}-${versionName}.html`;
+  if (isRootNode) {
+    const totalPageLength = pagesNode.length;
+    // NOTE: document의 children을 가져와 page 별로 각각 개별 HTML 생성
+    pagesNode.forEach((child, i) => {
+      const pageName = child.name
+        .replace(/\b(col-\d+|row-\d+)\b/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .toLowerCase();
 
-  const outputPath = path.join(__dirname, "result", testFileName);
-  fs.writeFileSync(outputPath, output, "utf-8");
+      let outputHtml = template(child);
+      outputHtml = outputHtml.replace(
+        `href="./template.css"`,
+        `href="/dist/template.css"`,
+      );
 
-  console.info(`✅[TEST:GEN]: DONE output saved to: ${outputPath}`);
+      const outputSubPath = i === 0 ? [distDir] : [distDir, pageName];
+      const outputDir = path.join(...outputSubPath);
+      const outputPath = path.join(outputDir, "index.html");
+
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      fs.writeFileSync(outputPath, outputHtml, "utf-8");
+      console.info(
+        `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
+      );
+    });
+  }
+
+  console.info(`✅[TEST:GEN]: DONE output save all pages in ${distDir}`);
 }
 
 module.exports = { generateTest };
