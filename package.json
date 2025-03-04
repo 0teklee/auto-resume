@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node src/scripts/build.js",
-    "postbuild": "cp -r dist/* /opt/buildhome/repo/dist/",
+    "postbuild": "cp -rT dist/* /opt/buildhome/repo/dist/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:gen": "node src/test/template/test:gen.js"
   },
