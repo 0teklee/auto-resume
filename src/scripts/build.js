@@ -39,6 +39,11 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     if (!fs.existsSync(distDir)) {
       fs.mkdirSync(distDir, { recursive: true });
     }
+    // _redirects 파일 경로 설정
+    const redirectsPath = path.join(distDir, "_redirects");
+
+    // _redirects 파일을 업데이트할 배열
+    const redirects = [];
 
     /* root = Document 객체 > 피그마 파일 최상단
      *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
@@ -64,7 +69,7 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
           .replace(/\s+/g, "-")
           .toLowerCase();
 
-        // 페이지 HTML 생성
+        // 개별 페이지 HTML 생성
         let outputHtml = template(page);
         const outputSubPath = i === 0 ? [distDir] : [distDir, pageName];
         const outputDir = path.join(...outputSubPath);
@@ -75,13 +80,23 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
         }
 
         fs.writeFileSync(outputPath, outputHtml, "utf-8");
+
+        // ✅ _redirects에 경로 추가
+        redirects.push(`/${pageName}/ /${pageName}/index.html 200`);
+
         console.info(
           `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
         );
       });
     }
 
-    console.info(`✅[TEST:GEN]: DONE output save all pages`);
+    // ✅ _redirects 파일 생성 및 쓰기
+    fs.writeFileSync(redirectsPath, redirects.join("\n"), "utf-8");
+    console.info(`✅[BUILD]: _redirects 파일 생성`);
+
+    console.info(
+      `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length}`,
+    );
   } catch (err) {
     console.error("❌[BUILD]: Build script error:", err);
     process.exit(1); // Fail the build if an error occurs
