@@ -36,7 +36,7 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     const template = Handlebars.compile(templateSource);
 
     // output 경로 확인
-    const distDir = path.join(__dirname, "..", "dist");
+    const distDir = path.join(__dirname, "..", "..", "dist");
     if (!fs.existsSync(distDir)) {
       fs.mkdirSync(distDir, { recursive: true });
     }
