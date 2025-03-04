@@ -2,10 +2,6 @@ name = "auto-resume-worker"
 main = "./worker.ts"
 compatibility_date = "2025-02-27"
 
-[build]
-pages_build_output_dir = "./dist"
-
-
 [[r2_buckets]]
 binding = "RESUME_STORAGE"
 bucket_name = "auto-bucket"
