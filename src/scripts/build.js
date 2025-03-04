@@ -144,6 +144,9 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     const headersFile = path.join(distDir, "_headers");
     fs.writeFileSync(headersFile, "/*\n  Cache-Control: no-store\n", "utf-8");
     console.info(`✅[BUILD]: _headers 파일 생성 완료`);
+    const files = fs.readdirSync(distDir);
+
+    console.log("✅[BUILD]: dist/ 디렉토리 내 파일 목록: \n", files);
   } catch (err) {
     console.error("❌[BUILD]: Build script error:", err);
     process.exit(1); // Fail the build if an error occurs
