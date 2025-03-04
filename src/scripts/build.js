@@ -40,10 +40,10 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
       fs.mkdirSync(distDir, { recursive: true });
     }
     // _redirects 파일 경로 설정
-    const redirectsPath = path.join(distDir, "_redirects");
+    const redirectsFile = path.join(distDir, "_redirects");
 
     // _redirects 파일을 업데이트할 배열
-    const redirects = [];
+    const redirectsList = [];
 
     /* root = Document 객체 > 피그마 파일 최상단
      *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
@@ -82,7 +82,7 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
         fs.writeFileSync(outputPath, outputHtml, "utf-8");
 
         // ✅ _redirects에 경로 추가
-        redirects.push(`/${pageName}/* /${pageName}/:splat 200`);
+        redirectsList.push(`/${pageName}/* /${pageName}/:splat 200`);
 
         console.info(
           `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
@@ -91,8 +91,13 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
     }
 
     // ✅ _redirects 파일 생성 및 쓰기
-    fs.writeFileSync(redirectsPath, redirects.join("\n"), "utf-8");
-    console.info(`✅[BUILD]: _redirects 파일 생성`);
+    fs.writeFileSync(redirectsFile, redirectsList.join("\n"), {
+      encoding: "utf-8",
+      flag: "w",
+    });
+    console.info(
+      `✅[BUILD]: _redirects 파일 생성. \n sub-paths: \n ${redirectsFile}`,
+    );
 
     console.info(
       `✅[DEPLOY]: DONE output save all pages TOTAL:${pagesNode.length}`,
