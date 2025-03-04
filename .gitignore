@@ -11,3 +11,6 @@ src/test/*/result/*
 
 # Wrangler local vars
 .dev.vars
+
+# Wrangler 로컬 configure
+/wrangler.toml
