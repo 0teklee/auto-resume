@@ -1,34 +1,33 @@
-const { applyTextStyles, getMaxDepth } = require("./utils.js");
+const {
+  getMaxDepth,
+  renderListItems,
+  renderTextNode,
+  renderFrameOrGroup,
+} = require("./utils.js");
 const Handlebars = require("handlebars");
 
 const recursiveChildren = {
   key: "recursiveChildren",
   function(children, opts, parentMaxDepth = null, isRoot = true) {
-    let result = "";
-    // opts.data.index === 0 && !result.includes("<main");
+    // NOTE: rootStringHTML = Figma의 Page 레이어, 문서의 단위
+    let rootStringHTML = "";
 
     if (isRoot) {
-      console.log(
-        `CUR Index: ${opts.data.index}  isRoot :`,
+      const rootNode = opts.data.root;
+      const mainTagOpen = renderFrameOrGroup(
+        rootNode,
+        opts,
+        parentMaxDepth,
         isRoot,
-        "\n",
-        "OPTS.data >",
-        opts.data,
       );
 
-      let { layoutMode, itemSpacing = 4, name: layerName } = opts.data.root;
-      let classNames = layerName.replace(/\b(col-\d+|row-\d+)\b/g, "").trim();
-      const groupType = layoutMode === "VERTICAL" ? "col" : "row";
-      let gapMatch = layerName.match(/(\d+)/);
-
-      let styleAttrs = itemSpacing ?? 4;
-      styleAttrs = gapMatch ? gapMatch[0] : styleAttrs;
-
-      result += `<${isRoot ? "main" : "div"} class="${groupType}${classNames ? " " + classNames : ""}" style="gap:${styleAttrs}px">`;
+      rootStringHTML += mainTagOpen;
     }
-    let childResult = "";
 
+    // 내부 컨텐츠 렌더링: Root 노드의 children 재귀 호출
     children.forEach((child) => {
+      // childStringHTML = 자식 노드 HTML 문자열
+      let childStringHTML = "";
       // 그래프 높이 계산 - 자식 노드마다 업데이트
       const maxDepth = parentMaxDepth ?? getMaxDepth({ children });
 
@@ -36,111 +35,53 @@ const recursiveChildren = {
       const safeClassName = child.name ?? "";
 
       // list-items를 ul > li 태그로 전환
-      if (safeClassName.includes("list-items")) {
-        const characters = child.characters;
-        // Figma 글자 스타일 override 맵핑 인덱스 사용
-        const styles = child?.characterStyleOverrides || [];
-        const overrideTable = child?.styleOverrideTable || {};
-        const liClass = safeClassName
-          .split(" ")
-          .filter((item) => item !== "list-items" && item !== "link");
-
-        // 줄바꿈을 기준으로 characters와 styles를 동일하게 분할
-        let startIndex = 0;
-        const lines = characters.split("\n").map((line) => {
-          const lineLength = line.length;
-          const styleSlice = styles.slice(startIndex, startIndex + lineLength);
-          startIndex += lineLength + 1; // +1은 \n 문자 포함
-
-          return { text: line, styleOverrides: styleSlice };
-        });
-
-        let href = Object.values(overrideTable).find(
-          (style) => style?.hyperlink,
-        )?.hyperlink?.url;
-
-        const listItems = lines
-          .map(({ text, styleOverrides }, i) => {
-            const styledText = applyTextStyles({
-              characters: text,
-              characterStyleOverrides: styleOverrides,
-              styleOverrideTable: overrideTable,
-            });
-
-            if (href && i === 0) {
-              return `<li class=""><a class="link" target="_blank" href="${href}">${styledText}</a></li>`;
-            }
-            return `<li class="${liClass.join(" ")}">${styledText}</li>`;
-          })
-          .join("");
-
-        childResult += `<ul class="list-items">${listItems}</ul>`;
+      const isListType = safeClassName.includes("list-items");
+      if (isListType) {
+        const listTag = renderListItems(child);
+        childStringHTML += listTag;
       }
 
-      // 텍스트 노드들 태그
-      if (child.type === "TEXT" && !safeClassName.includes("list-items")) {
-        let tag = "p";
-        let attr = "";
-        if (child.name.includes("h1")) tag = "h1";
-        else if (
-          child.name.includes("link") &&
-          !!child?.style?.hyperlink?.url // 오버라이드 미포함
-        ) {
-          tag = "a";
-          attr = `href="${child.style.hyperlink.url}" target="_blank"`;
-        } else if (child.name.includes("h2")) tag = "h2";
-        else if (child.name.includes("h3")) tag = "h3";
-        else if (child.name.includes("h4")) tag = "h4";
-        else if (child.name.includes("h5")) tag = "h5";
-        else if (child.name.includes("bold")) tag = "strong";
-        else if (child.name.includes("span")) tag = "span";
-
-        const textStyleOverride =
-          child.name !== "link" ? applyTextStyles(child) : child.characters;
-
-        childResult += `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
+      // 텍스트 노드 태그 렌더링
+      const isTextType = child.type === "TEXT" && !isListType;
+      if (isTextType) {
+        const textTag = renderTextNode(child);
+        childStringHTML += textTag;
       }
 
       // COL/ROW 레이아웃 프레임 노드
-      if (
+      const isFrameLayoutType =
         (child.type === "FRAME" || child.type === "GROUP") &&
-        child.name.match(/\b(col-\d+|row-\d+)\b/g)
-      ) {
-        let { layoutMode, itemSpacing = 4 } = child;
+        child.name.match(/\b(col-\d+|row-\d+)\b/g);
+      if (isFrameLayoutType) {
+        // NOTE: renderFrameOrGroup 함수 내부에서 재귀 호출
+        const frameTag = renderFrameOrGroup(
+          child,
+          opts,
+          maxDepth,
+          false,
+          Handlebars,
+        );
 
-        let tempClass = child.name;
-        let classNames = tempClass.replace(/\b(col-\d+|row-\d+)\b/g, "").trim();
-        const groupType = layoutMode === "VERTICAL" ? "col" : "row";
-        let gapMatch = child.name.match(/(\d+)/);
-
-        let styleAttrs = itemSpacing ?? 4;
-        styleAttrs = gapMatch ? gapMatch[0] : styleAttrs;
-
-        childResult += `<div class="${groupType}${classNames ? " " + classNames : ""}" style="gap:${styleAttrs}px">`;
-
-        if (child.children && child.children.length > 0) {
-          childResult += Handlebars.helpers.recursiveChildren(
-            child.children,
-            opts,
-            maxDepth,
-            false,
-          );
-        }
-        childResult += `</div>`;
-      } else if (
-        child.type === "RECTANGLE" ||
-        child.type === "ELLIPSE" ||
-        child.name === "br"
-      ) {
-        childResult += `<div class="${safeClassName}"></div>`;
+        childStringHTML += frameTag;
       }
+      // br이나 그래픽 태그 타입
+      const isGraphicType =
+        !isListType &&
+        !isTextType &&
+        (child.type === "RECTANGLE" ||
+          child.type === "ELLIPSE" ||
+          child.name === "br");
+      if (isGraphicType) {
+        childStringHTML += `<div class="${safeClassName}"></div>`;
+      }
+      rootStringHTML += childStringHTML;
     });
 
-    if (isRoot && !result.includes("</main")) {
-      result += `</main>`;
+    if (isRoot && !rootStringHTML.includes("</main")) {
+      rootStringHTML += `</main>`;
     }
 
-    return new Handlebars.SafeString(result);
+    return new Handlebars.SafeString(rootStringHTML);
   },
 };
 
