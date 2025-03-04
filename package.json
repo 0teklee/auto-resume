@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node src/scripts/build.js && echo 'dist' > .pages_output_dir",
+    "build": "node src/scripts/build.js && ls -lah dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:gen": "node src/test/template/test:gen.js"
   },
@@ -19,14 +19,17 @@
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-stylelint": "^0.1.1",
-    "handlebars": "^4.7.7",
-    "node-fetch": "^2.6.7",
     "prettier": "^3.5.2",
     "stylelint": "^16.14.1",
     "stylelint-config-standard": "^37.0.0",
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "figma-plugin-api": "^1.1.2"
+    "figma-plugin-api": "^1.1.2",
+    "handlebars": "^4.7.7",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   }
 }
