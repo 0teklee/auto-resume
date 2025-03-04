@@ -7,3 +7,5 @@ binding = "RESUME_STORAGE"
 bucket_name = "auto-bucket"
 preview_bucket_name= "auto-bucket-preview"
 
+[build]
+pages_build_output_dir = "/dist"
