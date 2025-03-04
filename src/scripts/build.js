@@ -82,7 +82,7 @@ Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
         fs.writeFileSync(outputPath, outputHtml, "utf-8");
 
         // ✅ _redirects에 경로 추가
-        redirects.push(`/${pageName}/ /${pageName}/index.html 200`);
+        redirects.push(`/${pageName}/* /${pageName}/:splat 200`);
 
         console.info(
           `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
