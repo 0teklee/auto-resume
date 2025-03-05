@@ -116,22 +116,43 @@ const renderListItems = (child) => {
 const renderTextNode = (child) => {
   let tag = "p";
   let attr = "";
-  if (child.name.includes("h1")) tag = "h1";
-  else if (
-    child.name.includes("link") &&
-    !!child?.style?.hyperlink?.url // 오버라이드 미포함
-  ) {
-    tag = "a";
-    attr = `href="${child.style.hyperlink.url}" target="_blank"`;
-  } else if (child.name.includes("h2")) tag = "h2";
-  else if (child.name.includes("h3")) tag = "h3";
-  else if (child.name.includes("h4")) tag = "h4";
-  else if (child.name.includes("h5")) tag = "h5";
-  else if (child.name.includes("bold")) tag = "strong";
-  else if (child.name.includes("span")) tag = "span";
+
+  switch (true) {
+    case child.name.includes("h1"):
+      tag = "h1";
+      break;
+    case child.name.includes("link") && !!child?.style?.hyperlink?.url:
+      tag = "a";
+      const href = child.style.hyperlink.url;
+      const isInternal = href.includes("resume.leetekwoo.com");
+      attr = `href="${href}" ${isInternal ? "" : `target="_blank"`}`;
+      break;
+    case child.name.includes("h2"):
+      tag = "h2";
+      break;
+    case child.name.includes("h3"):
+      tag = "h3";
+      break;
+    case child.name.includes("h4"):
+      tag = "h4";
+      break;
+    case child.name.includes("h5"):
+      tag = "h5";
+      break;
+    case child.name.includes("bold"):
+      tag = "strong";
+      break;
+    case child.name.includes("span"):
+      tag = "span";
+      break;
+    default:
+      tag = "p"; // 기본값
+      break;
+  }
 
   const textStyleOverride =
     child.name !== "link" ? applyTextStyles(child) : child.characters;
+
   return `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
 };
 
