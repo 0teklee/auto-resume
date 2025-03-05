@@ -1,3 +1,5 @@
+const ROOT_DOMAIN = "resume.leetekwoo.com";
+
 function getMaxDepth(node, depth = 1) {
   if (!node.children || node.children.length === 0) return depth;
   return Math.max(
@@ -6,7 +8,7 @@ function getMaxDepth(node, depth = 1) {
 }
 
 /**
- * @description 텍스트 스타일 오버라이드 적용
+ * @description 텍스트 스타일 오버라이드 적용 + URL 추가
  * @param child - 노드
  * @note Text 타입 노드의 characters에만 적용 (리스트 노드 제외)
  * @note 맵핑 characterStyleOverrides으로 리스트 내 링크, 볼드, 밑줄 적용
@@ -14,12 +16,14 @@ function getMaxDepth(node, depth = 1) {
 function applyTextStyles(child) {
   let text = child.characters;
   if (!text) return "";
+
   let styles = (child.characterStyleOverrides || []).slice(0, text.length);
   let overrideTable = child.styleOverrideTable || {};
   let styledText = "";
   let openTags = [];
 
   let lastStyleKey = null; // 이전 스타일 키를 저장
+  let currentLink = null; // 현재 링크를 추적
 
   for (let i = 0; i < text.length; i++) {
     let styleKey = styles[i] || 0;
@@ -28,10 +32,27 @@ function applyTextStyles(child) {
     let tagStart = "";
     let tagEnd = "";
 
+    // 하이퍼링크 스타일이 있는 경우
+    const urlInLink = style?.hyperlink?.url;
+    if (urlInLink && currentLink === null) {
+      const attrs = getLinkAttrs(urlInLink, ROOT_DOMAIN);
+
+      // 링크 시작
+      tagStart = `<a class="link" ${{ ...attrs }} >`;
+      currentLink = true;
+    } else if (!urlInLink && currentLink !== null) {
+      // 링크 종료
+      tagEnd = "</a>";
+      currentLink = null;
+    }
+
+    // 볼드 처리
     if (style.fontWeight === 700) {
       tagStart += "<b class='bold'>";
       tagEnd = "</b>" + tagEnd;
     }
+
+    // 밑줄 처리
     if (style.textDecoration === "UNDERLINE") {
       tagStart += "<u class='underline'>";
       tagEnd = "</u>" + tagEnd;
@@ -59,48 +80,49 @@ function applyTextStyles(child) {
     styledText += openTags.pop();
   }
 
+  // 마지막에 열린 링크를 닫아줌
+  if (currentLink) {
+    styledText += "</a>";
+  }
+
   return styledText;
 }
 
 /**
  * @description 리스트 노드 렌더링 = 텍스트 컨턴츠인 리프 노드를 시멘틱 html 태그로 변환
  * @param child - 노드
- * @note 맵핑 characterStyleOverrides으로 리스트 내 링크, 볼드, 밑줄 적용
- * @note link 노드는 a 태그로 변환 + href, target 속성 추가
+ * @note 텍스트 스타일 오버라이드 기능 삭제 : applyTextStyles로 통합
  */
 const renderListItems = (child) => {
   const characters = child.characters;
-  // Figma 글자 스타일 override 맵핑 인덱스 사용
-  const styles = child?.characterStyleOverrides || [];
+  const stylesOverrides = child?.characterStyleOverrides || [];
   const overrideTable = child?.styleOverrideTable || {};
-  const liClass = (child.name ?? "")
-    .split(" ")
-    .filter((item) => item !== "list-items" && item !== "link");
 
-  // 줄바꿈을 기준으로 characters와 styles를 동일하게 분할
+  const liClass = (child.name ?? "")
+    .replace("list-items", "")
+    .replace("link", "");
+
   let startIndex = 0;
+
   const lines = characters.split("\n").map((line) => {
     const lineLength = line.length;
-    const styleSlice = styles.slice(startIndex, startIndex + lineLength);
+    const styleSlice = stylesOverrides.slice(
+      startIndex,
+      startIndex + lineLength,
+    );
     startIndex += lineLength + 1; // +1은 \n 문자 포함
-    return { text: line, styleOverrides: styleSlice };
+    return { text: line, styleSlice };
   });
 
-  const href = Object.values(overrideTable).find((style) => style?.hyperlink)
-    ?.hyperlink?.url;
-
   const listItems = lines
-    .map(({ text, styleOverrides }, i) => {
+    .map(({ text, styleSlice }, i) => {
       const styledText = applyTextStyles({
         characters: text,
-        characterStyleOverrides: styleOverrides,
+        characterStyleOverrides: styleSlice,
         styleOverrideTable: overrideTable,
       });
 
-      if (href && i === 0) {
-        return `<li class=""><a class="link" target="_blank" href="${href}">${styledText}</a></li>`;
-      }
-      return `<li class="${liClass.join(" ")}">${styledText}</li>`;
+      return `<li class="${liClass}">${styledText}</li>`;
     })
     .join("");
 
@@ -124,8 +146,11 @@ const renderTextNode = (child) => {
     case child.name.includes("link") && !!child?.style?.hyperlink?.url:
       tag = "a";
       const href = child.style.hyperlink.url;
-      const isInternal = href.includes("resume.leetekwoo.com");
-      attr = `href="${href}" ${isInternal ? "" : `target="_blank"`}`;
+      const attrs = getLinkAttrs(href, ROOT_DOMAIN);
+
+      attr = Object.entries(attrs)
+        .map(([key, attr]) => `${key}="${attr}"`)
+        .join(" ");
       break;
     case child.name.includes("h2"):
       tag = "h2";
@@ -150,10 +175,12 @@ const renderTextNode = (child) => {
       break;
   }
 
+  let className = child.name.replace(tag, "").trim();
+
   const textStyleOverride =
     child.name !== "link" ? applyTextStyles(child) : child.characters;
 
-  return `<${tag} ${attr || ""} class="${child.name}">${textStyleOverride}</${tag}>`;
+  return `<${tag} ${attr || ""} class="${className}">${textStyleOverride}</${tag}>`;
 };
 
 /**
@@ -199,6 +226,13 @@ const renderFrameOrGroup = (
 
   return output;
 };
+
+function getLinkAttrs(url, root) {
+  return {
+    href: url,
+    target: url.includes(root) ? "" : "_blank",
+  };
+}
 
 module.exports = {
   getMaxDepth,
