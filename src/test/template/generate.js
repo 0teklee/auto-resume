@@ -55,8 +55,8 @@ function generateTest(jsonFileName = "latest.json") {
 
       let outputHtml = template(child);
       outputHtml = outputHtml.replace(
-        `href="./template.css"`,
-        `href="/dist/template.css"`,
+        `https://resume.leetekwoo.com/template.css`,
+        `/dist/template.css`,
       );
 
       const outputSubPath = i === 0 ? [distDir] : [distDir, pageName];
