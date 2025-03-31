@@ -1,3 +1,4 @@
+// TODO Refactor - duplicated code
 // Read template and JSON files
 const path = require("path");
 const fs = require("fs");
@@ -31,6 +32,7 @@ function generateTest(jsonFileName = "latest.json") {
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
+
   /* root = Document 객체 > 피그마 파일 최상단
    *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
    *  pagesNode = canvas의 children. 페이지별로 문서 단위로 나뉘어짐
@@ -47,6 +49,11 @@ function generateTest(jsonFileName = "latest.json") {
   if (isRootNode) {
     const totalPageLength = pagesNode.length;
 
+    const baseUrl = "https://resume.leetekwoo.com";
+    // sitemap 생성 추가
+    const sitemapUrls = [];
+    sitemapUrls.push(baseUrl);
+
     // NOTE: document의 children을 가져와 page 별로 각각 개별 HTML 생성
     pagesNode.forEach((child, i) => {
       const pageName = child.name
@@ -61,6 +68,10 @@ function generateTest(jsonFileName = "latest.json") {
         `/dist/template.css`,
       );
 
+      if (i > 0) {
+        sitemapUrls.push(`${baseUrl}/${pageName}`);
+      }
+
       const outputSubPath = i === 0 ? [distDir] : [distDir, pageName];
       const outputDir = path.join(...outputSubPath);
       const outputPath = path.join(outputDir, "index.html");
@@ -73,6 +84,27 @@ function generateTest(jsonFileName = "latest.json") {
       console.info(
         `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
       );
+
+      // sitemap.xml 생성
+      const today = new Date().toISOString().split("T")[0];
+      const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          ${sitemapUrls
+            .map(
+              (url) => `  
+            <url>
+              <loc>${url}</loc>
+              <lastmod>${today}</lastmod>
+              <priority>0.8</priority>
+            </url>`,
+            )
+            .join("\n")}
+          </urlset>
+          `;
+
+      const sitemapPath = path.join(distDir, "sitemap.xml");
+      fs.writeFileSync(sitemapPath, sitemapContent, "utf-8");
+      console.info(`✅[BUILD]: sitemap.xml 생성 완료`);
     });
   }
 

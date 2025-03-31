@@ -55,6 +55,8 @@ Handlebars.registerHelper(generateTitle.key, generateTitle.function);
 
     // _redirects 파일을 업데이트할 배열
     const redirectsList = [];
+    // 사이트맵에 추가할 URL 배열
+    const sitemapUrls = [];
 
     /* root = Document 객체 > 피그마 파일 최상단
      *  canvas = root의 children. CANVAS 타입으로 작업 공간 자체를 가리킴
@@ -72,6 +74,10 @@ Handlebars.registerHelper(generateTitle.key, generateTitle.function);
     // NOTE: document의 children을 가져와 page 별로 각각 개별 HTML 생성
     if (isRootNode) {
       const totalPageLength = pagesNode.length;
+
+      // 루트 URL도 사이트맵에 추가 (메인 페이지)
+      const baseUrl = "https://resume.leetekwoo.com";
+      sitemapUrls.push(baseUrl);
 
       pagesNode.forEach((page, i) => {
         const pageName = page.name
@@ -94,6 +100,11 @@ Handlebars.registerHelper(generateTitle.key, generateTitle.function);
 
         // ✅ _redirects에 경로 추가
         redirectsList.push(`/${pageName}/* /${pageName}/:splat 200`);
+
+        // ✅ 사이트맵에 URL 추가 (첫 페이지는 이미 루트로 추가됨)
+        if (i > 0) {
+          sitemapUrls.push(`${baseUrl}/${pageName}`);
+        }
 
         console.info(
           `✅[BUILD]: HTML 생성 완료 dist/${pageName} \n ${i + 1}/${totalPageLength} (TOTAL) `,
@@ -131,6 +142,25 @@ Handlebars.registerHelper(generateTitle.key, generateTitle.function);
 
     updateFileTimestamps(distDir);
     console.info(`✅[BUILD]: dist/ 파일 수정 시간 업데이트 완료`);
+
+    // ✅ sitemap.xml 생성
+    const today = new Date().toISOString().split("T")[0];
+    const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls
+  .map(
+    (url, i) => `  <url>
+    <loc>${url}</loc>
+    <lastmod>${today}</lastmod>
+    <priority>${i === 0 ? 1 : 0.9}</priority>
+  </url>`,
+  )
+  .join("\n")}
+</urlset>`;
+
+    const sitemapPath = path.join(distDir, "sitemap.xml");
+    fs.writeFileSync(sitemapPath, sitemapContent, "utf-8");
+    console.info(`✅[BUILD]: sitemap.xml 생성 완료`);
 
     const outputDir = getDirectoryTree(distDir);
     console.info(
