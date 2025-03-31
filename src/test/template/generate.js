@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const Handlebars = require("handlebars");
-const { recursiveChildren } = require("../../template/helper");
+const { recursiveChildren, generateTitle } = require("../../template/helper");
 
 function generateTest(jsonFileName = "latest.json") {
   console.info("[TEST:GEN] 1. Start Generating");
@@ -20,13 +20,14 @@ function generateTest(jsonFileName = "latest.json") {
 
   const templateSource = fs.readFileSync(templatePath, "utf-8");
   const figmaData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+  const dateTime = new Date().toISOString().slice(0, 13);
 
   Handlebars.registerHelper(recursiveChildren.key, recursiveChildren.function);
-
+  Handlebars.registerHelper(generateTitle.key, generateTitle.function);
   const template = Handlebars.compile(templateSource);
 
   // output 경로 확인
-  const distDir = path.join(__dirname, "result", `dist-${versionName}`);
+  const distDir = path.join(__dirname, "result", `${dateTime}-${versionName}`);
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
@@ -45,6 +46,7 @@ function generateTest(jsonFileName = "latest.json") {
 
   if (isRootNode) {
     const totalPageLength = pagesNode.length;
+
     // NOTE: document의 children을 가져와 page 별로 각각 개별 HTML 생성
     pagesNode.forEach((child, i) => {
       const pageName = child.name
@@ -74,7 +76,9 @@ function generateTest(jsonFileName = "latest.json") {
     });
   }
 
-  console.info(`✅[TEST:GEN]: DONE output save all pages in ${distDir}`);
+  console.info(
+    `✅[TEST:GEN]: DONE output save all pages in ${distDir.split("/").slice(8).join("/")}`,
+  );
 }
 
 module.exports = { generateTest };
