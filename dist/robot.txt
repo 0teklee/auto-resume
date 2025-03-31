@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://resume.leetekwoo.com/sitemap.xml
