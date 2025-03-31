@@ -85,4 +85,33 @@ const recursiveChildren = {
   },
 };
 
-module.exports = { recursiveChildren };
+const findTitleNode = (nodes) => {
+  for (const node of nodes) {
+    // 'h1' = 문서의 타이틀.
+    if (node.type === "TEXT" && node.name === "h1") {
+      return node.characters; // 찾으면 해당 노드의 characters 반환
+    }
+    // h1이 캔버스 > ... 몇 단계 안에 있으므로 재귀적으로 탐색
+    if (node.children && node.children.length > 0) {
+      const found = findTitleNode(node.children);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const generateTitle = {
+  key: "generateTitle",
+  function(context) {
+    // Handlebars 템플릿의 최상위 컨텍스트(this)에서 document를 가져옴.
+    const document = context.children[0];
+    if (!document || !document.children) {
+      return "이택우 이력서 - TEKWOO LEE"; // 못찾을 시 기본값 반환
+    }
+    // findTitleNode를 통해 재귀 탐색 후 타이틀 반환
+    const title = findTitleNode(document.children);
+    return title ? `${title} - DEV. TEKWOO LEE ` : "이택우 이력서 - TEKWOO LEE"; // 못찾을 시 Fallback 타이틀 반환
+  },
+};
+
+module.exports = { recursiveChildren, generateTitle };
